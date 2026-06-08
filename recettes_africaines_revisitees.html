@@ -1,0 +1,211 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+#app{font-family:var(--font-sans);background:#fdf8f4;min-height:100vh;}
+
+.hero{background:linear-gradient(135deg,#f9ede3 0%,#fce4ec 50%,#f3e5f5 100%);padding:2.5rem 1.5rem 2rem;text-align:center;}
+.hero-emoji{font-size:40px;margin-bottom:10px;}
+.hero h1{font-size:26px;font-weight:500;color:#5d3a2a;margin-bottom:6px;}
+.hero p{font-size:14px;color:#a07060;max-width:420px;margin:0 auto;}
+.hero .tagline{font-size:12px;color:#c09080;margin-top:8px;font-style:italic;}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;padding:1.5rem;}
+
+.recipe-card{background:#fff;border:0.5px solid #f0ddd5;border-radius:16px;overflow:hidden;cursor:pointer;transition:transform 0.18s,border-color 0.18s;}
+.recipe-card:hover{transform:translateY(-3px);border-color:#e8a090;}
+.card-img{width:100%;height:160px;object-fit:cover;display:flex;align-items:center;justify-content:center;font-size:56px;}
+.card-img.c1{background:linear-gradient(135deg,#fde8cc,#fac898);}
+.card-img.c2{background:linear-gradient(135deg,#fde8d8,#f5b8a0);}
+.card-img.c3{background:linear-gradient(135deg,#fce8f0,#f4b8d0);}
+.card-img.c4{background:linear-gradient(135deg,#fde8c8,#f8c080);}
+.card-img.c5{background:linear-gradient(135deg,#e8f4e8,#a8d8a8);}
+.card-img.c6{background:linear-gradient(135deg,#f4e8f8,#d0a8e8);}
+.card-body{padding:1rem 1.1rem 1.2rem;}
+.card-tag{display:inline-block;font-size:11px;padding:3px 10px;border-radius:20px;background:#fde8d8;color:#a05030;margin-bottom:8px;}
+.card-title{font-size:16px;font-weight:500;color:#3d2018;margin-bottom:4px;}
+.card-subtitle{font-size:12px;color:#a07060;margin-bottom:8px;}
+.card-joke{font-size:12px;color:#c08070;font-style:italic;border-left:2px solid #f5c4b3;padding-left:8px;margin-bottom:10px;}
+.card-meta{display:flex;gap:12px;font-size:12px;color:#b09080;}
+.card-meta span{display:flex;align-items:center;gap:4px;}
+
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(80,30,10,0.35);z-index:100;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;}
+.modal-bg.open{display:flex;}
+.modal{background:#fff;border-radius:20px;max-width:560px;width:100%;overflow:hidden;}
+.modal-hero{height:180px;display:flex;align-items:center;justify-content:center;font-size:72px;}
+.modal-body{padding:1.5rem;}
+.modal-tag{display:inline-block;font-size:11px;padding:3px 10px;border-radius:20px;background:#fde8d8;color:#a05030;margin-bottom:10px;}
+.modal-title{font-size:22px;font-weight:500;color:#3d2018;margin-bottom:4px;}
+.modal-subtitle{font-size:13px;color:#a07060;margin-bottom:12px;}
+.modal-joke{font-size:13px;color:#c08070;font-style:italic;border-left:3px solid #f5c4b3;padding:6px 10px;background:#fff8f5;border-radius:0 8px 8px 0;margin-bottom:1.25rem;}
+.section-title{font-size:13px;font-weight:500;color:#7d4030;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;}
+.ingredients{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:1.5rem;}
+.ingredients li{font-size:13px;color:#5d3a2a;display:flex;align-items:center;gap:6px;}
+.ingredients li::before{content:"";width:6px;height:6px;border-radius:50%;background:#e8a090;flex-shrink:0;}
+.steps{list-style:none;margin-bottom:1.5rem;}
+.steps li{display:flex;gap:12px;margin-bottom:12px;font-size:14px;color:#5d3a2a;line-height:1.6;}
+.step-num{width:24px;height:24px;border-radius:50%;background:#fde8d8;color:#a05030;font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.tip-box{background:#fff8f0;border:0.5px solid #f0d0c0;border-radius:12px;padding:12px 14px;font-size:13px;color:#a07060;margin-bottom:1.5rem;}
+.tip-box strong{color:#7d4030;}
+.close-btn{width:100%;padding:12px;border:none;border-radius:10px;background:#f5e0d8;color:#7d4030;font-size:14px;font-weight:500;cursor:pointer;}
+.close-btn:hover{background:#f0c8b8;}
+</style>
+
+<h2 class="sr-only">Site de recettes africaines revisitées avec une touche d'humour</h2>
+<div id="app">
+  <div class="hero">
+    <div class="hero-emoji">🍳</div>
+    <h1>La Cuisine Revisitée</h1>
+    <p>Des saveurs africaines qu'on dirait inventées par un chef étoilé parisien… mais en mieux.</p>
+    <div class="tagline">Parce que nos mamans cuisinent mieux que tous les restaurants.</div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="modal-bg" id="modal-bg" onclick="closeModal(event)">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+const RECIPES = [
+  {
+    id:1, color:"c1", emoji:"🍲", tag:"Congo · Plat principal",
+    title:"Le Velours de l'Atlantique", subtitle:"alias le Mafé — ragoût d'arachide",
+    joke:"\"C'est quoi cette sauce marron ?\" — \"Mon ami, c'est de la philosophie liquide.\"",
+    time:"60 min", level:"Facile", people:"4 pers.",
+    ingredients:["500g de viande de bœuf","200g de pâte d'arachide","2 tomates","1 oignon","2 gousses d'ail","1 cube de bouillon","Huile, sel, poivre","1 piment (facultatif)"],
+    steps:[
+      "Découpe la viande en cubes et fais-la revenir dans l'huile chaude avec l'oignon émincé jusqu'à dorure.",
+      "Ajoute l'ail, les tomates coupées et le cube de bouillon. Laisse compoter 5 minutes.",
+      "Dilue la pâte d'arachide dans un peu d'eau tiède et verse dans la casserole.",
+      "Couvre avec de l'eau à hauteur, ajoute le piment si tu es courageux·se, et laisse mijoter 40 min à feu doux.",
+      "Sers sur du riz blanc bien chaud. Mange lentement. Ferme les yeux. Appelle ta maman."
+    ],
+    tip:"La pâte d'arachide doit être pure, sans sucre ajouté. Évite le beurre de cacahuète du supermarché — ce n'est pas pareil, on a vérifié."
+  },
+  {
+    id:2, color:"c2", emoji:"🍚", tag:"Sénégal · Plat principal",
+    title:"Le Riz Soleil du Sahel", subtitle:"alias le Thiéboudienne — riz au poisson",
+    joke:"Le plat national du Sénégal. Il y a autant de versions que de familles sénégalaises. Chacune est la seule bonne.",
+    time:"90 min", level:"Intermédiaire", people:"6 pers.",
+    ingredients:["1kg de riz brisé","1kg de poisson (thiof ou mérou)","3 tomates","2 carottes","1 chou","1 aubergine","Concentré de tomate","Persil, ail, oignon","Huile, sel, piment"],
+    steps:[
+      "Prépare la farce : mixe le persil avec l'ail et le sel, incise le poisson et remplis les entailles de ce mélange.",
+      "Fais revenir le poisson dans l'huile chaude, réserve-le dès qu'il est doré.",
+      "Dans la même huile, fais un roux avec l'oignon, la tomate fraîche et le concentré. C'est la base.",
+      "Ajoute les légumes, couvre d'eau, remets le poisson. Laisse cuire 30 min à feu moyen.",
+      "Retire le poisson et les légumes. Cuis le riz dans le bouillon obtenu, à couvert, 20 min.",
+      "Dresse : riz au fond, légumes autour, poisson posé sur le dessus comme un roi."
+    ],
+    tip:"Si le riz attache un peu au fond, c'est pas raté — c'est le \"xoon\", la partie croustillante très prisée. Bataillez pour qui l'aura."
+  },
+  {
+    id:3, color:"c3", emoji:"🥘", tag:"Côte d'Ivoire · Plat principal",
+    title:"La Crème Forestière d'Abidjan", subtitle:"alias le Foutou banane — banane pilée sauce graine",
+    joke:"Piler le foutou c'est un sport. Certaines familles ont développé des biceps impressionnants grâce à ce plat.",
+    time:"75 min", level:"Sportif", people:"4 pers.",
+    ingredients:["6 bananes plantain vertes","500g de graines de palme","300g de poulet ou poisson fumé","1 oignon","2 gousses d'ail","1 aubergine africaine","Feuilles de bonne herbe","Sel, piment"],
+    steps:[
+      "Cuis les bananes plantain à l'eau bouillante jusqu'à ce qu'elles soient bien tendres, environ 25 min.",
+      "Pile-les dans un mortier jusqu'à obtenir une pâte lisse et homogène. Bras solides requis.",
+      "Cuis les graines de palme à l'eau, puis broie-les pour extraire la pulpe. Filtre pour obtenir la sauce.",
+      "Fais revenir l'oignon et l'ail dans la sauce graine, ajoute le poulet fumé ou le poisson.",
+      "Laisse mijoter 20 min, ajoute l'aubergine et le piment selon ton courage.",
+      "Forme des boules de foutou à la main, sers avec la sauce bien chaude."
+    ],
+    tip:"La consistance du foutou doit être élastique, ni trop dure ni trop molle. C'est une question de feeling. Comme la vie."
+  },
+  {
+    id:4, color:"c4", emoji:"🫕", tag:"Cameroun · Plat principal",
+    title:"Le Velouté Doré de Yaoundé", subtitle:"alias le Ndolé — feuilles amères aux crevettes",
+    joke:"\"C'est amer.\" — \"Oui, comme les regrets de ne pas en avoir mangé avant.\"",
+    time:"80 min", level:"Intermédiaire", people:"5 pers.",
+    ingredients:["500g de feuilles de ndolé","300g de crevettes fraîches","200g de viande hachée","100g d'arachides grillées","2 oignons","3 gousses d'ail","Gingembre frais","Huile de palme, sel"],
+    steps:[
+      "Fais bouillir les feuilles de ndolé 3 fois en changeant l'eau à chaque fois pour réduire l'amertume.",
+      "Mixe les arachides grillées avec un peu d'eau pour obtenir une pâte grossière.",
+      "Fais revenir l'oignon, l'ail et le gingembre dans l'huile de palme jusqu'à sentir le paradis.",
+      "Ajoute la viande hachée, mélange 5 min, puis incorpore les crevettes.",
+      "Ajoute les feuilles essorées et la pâte d'arachide. Mélange bien, laisse mijoter 20 min.",
+      "Sers avec du miondo (bâton de manioc) ou du riz. Profite en silence."
+    ],
+    tip:"L'huile de palme rouge donne la couleur dorée caractéristique. Si tu n'en trouves pas, utilise de l'huile normale mais sache que ce n'est plus tout à fait pareil."
+  },
+  {
+    id:5, color:"c5", emoji:"🌿", tag:"Mali · Plat principal",
+    title:"La Soupe Émeraude du Niger", subtitle:"alias le Tô — boule de mil sauce feuilles",
+    joke:"Le Tô c'est l'ancêtre de la polenta. Mais en plus sage, plus humble et plus nourrissant.",
+    time:"45 min", level:"Facile", people:"4 pers.",
+    ingredients:["500g de farine de mil ou sorgho","1 litre d'eau","300g de feuilles de baobab séchées","200g de viande ou poisson séché","1 oignon","2 tomates","Soumbala (néré fermenté)","Huile, sel, piment"],
+    steps:[
+      "Prépare la sauce : fais revenir l'oignon et les tomates, ajoute la viande séchée et le soumbala.",
+      "Ajoute les feuilles de baobab réhydratées, couvre d'eau et laisse mijoter 30 min.",
+      "Pour le tô : chauffe l'eau à ébullition, verse la farine en pluie en remuant sans arrêt.",
+      "Continue à remuer énergiquement pendant 15 min. Le tô est prêt quand il se décolle des parois.",
+      "Mouille tes mains, forme des boules ou sers directement dans des bols.",
+      "Verse la sauce par-dessus généreusement. Partage avec les voisins."
+    ],
+    tip:"Le soumbala (graines de néré fermentées) donne une profondeur umami unique à la sauce. Cherche-le dans les épiceries africaines — ça change tout."
+  },
+  {
+    id:6, color:"c6", emoji:"🍠", tag:"Ghana · Dessert / Snack",
+    title:"Les Perles Violettes d'Accra", subtitle:"alias le Kelewele — plantain épicé frit",
+    joke:"Techniquement c'est un accompagnement. En pratique, on le mange avant même de mettre la table.",
+    time:"25 min", level:"Facile", people:"3 pers.",
+    ingredients:["3 bananes plantain mûres","1 c.c. de gingembre râpé","1 c.c. de piment de Cayenne","1/2 c.c. de noix de muscade","1 c.c. de sel","Huile de friture","Optionnel : arachides grillées"],
+    steps:[
+      "Épluche les plantains bien mûrs (peau noire = parfait) et coupe-les en cubes de 2cm.",
+      "Mélange le gingembre, le piment, la muscade et le sel dans un bol.",
+      "Enrobe les cubes de plantain du mélange d'épices. Laisse mariner 10 min si tu as la patience.",
+      "Chauffe l'huile à 180°C. Fris les cubes par petites quantités 3-4 min jusqu'à dorure.",
+      "Égoutte sur du papier absorbant. Parsème d'arachides grillées.",
+      "Sers immédiatement. Dans 30 secondes il n'en restera plus."
+    ],
+    tip:"Plus le plantain est mûr, plus le kelewele est sucré et caramélisé. Un plantain jaune donnera quelque chose de bien. Un plantain noir donnera quelque chose de divin."
+  }
+];
+
+function openRecipe(id){
+  const r=RECIPES.find(x=>x.id===id);
+  const m=document.getElementById('modal');
+  m.innerHTML=`
+    <div class="modal-hero ${r.color}">${r.emoji}</div>
+    <div class="modal-body">
+      <span class="modal-tag">${r.tag}</span>
+      <div class="modal-title">${r.title}</div>
+      <div class="modal-subtitle">${r.subtitle}</div>
+      <div class="modal-joke">${r.joke}</div>
+      <div style="display:flex;gap:12px;margin-bottom:1.25rem;">
+        <span style="font-size:12px;background:#fde8d8;color:#a05030;padding:4px 10px;border-radius:20px;"><i class="ti ti-clock" style="font-size:13px;vertical-align:-1px;" aria-hidden="true"></i> ${r.time}</span>
+        <span style="font-size:12px;background:#fde8d8;color:#a05030;padding:4px 10px;border-radius:20px;"><i class="ti ti-chef-hat" style="font-size:13px;vertical-align:-1px;" aria-hidden="true"></i> ${r.level}</span>
+        <span style="font-size:12px;background:#fde8d8;color:#a05030;padding:4px 10px;border-radius:20px;"><i class="ti ti-users" style="font-size:13px;vertical-align:-1px;" aria-hidden="true"></i> ${r.people}</span>
+      </div>
+      <div class="section-title">Ingrédients</div>
+      <ul class="ingredients">${r.ingredients.map(i=>`<li>${i}</li>`).join('')}</ul>
+      <div class="section-title">Préparation</div>
+      <ol class="steps">${r.steps.map((s,i)=>`<li><span class="step-num">${i+1}</span><span>${s}</span></li>`).join('')}</ol>
+      <div class="tip-box"><strong>Astuce :</strong> ${r.tip}</div>
+      <button class="close-btn" onclick="closeMod()">Fermer la recette</button>
+    </div>`;
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+function closeModal(e){if(e.target===document.getElementById('modal-bg'))closeMod();}
+function closeMod(){document.getElementById('modal-bg').classList.remove('open');}
+
+document.getElementById('grid').innerHTML=RECIPES.map(r=>`
+  <div class="recipe-card" onclick="openRecipe(${r.id})">
+    <div class="card-img ${r.color}">${r.emoji}</div>
+    <div class="card-body">
+      <span class="card-tag">${r.tag}</span>
+      <div class="card-title">${r.title}</div>
+      <div class="card-subtitle">${r.subtitle}</div>
+      <div class="card-joke">${r.joke}</div>
+      <div class="card-meta">
+        <span><i class="ti ti-clock" style="font-size:13px;" aria-hidden="true"></i> ${r.time}</span>
+        <span><i class="ti ti-flame" style="font-size:13px;" aria-hidden="true"></i> ${r.level}</span>
+        <span><i class="ti ti-users" style="font-size:13px;" aria-hidden="true"></i> ${r.people}</span>
+      </div>
+    </div>
+  </div>`).join('');
+</script>
